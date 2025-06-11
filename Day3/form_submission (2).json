@@ -1,0 +1,156 @@
+{
+  "name": "form submission",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "REPORT SUBMISSION",
+        "formDescription": "kindly upload the report ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email id",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Status",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Completed"
+                  },
+                  {
+                    "option": "Incomplete"
+                  },
+                  {
+                    "option": "Blocked"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -660,
+        0
+      ],
+      "id": "19aac17e-c93d-4ff0-adf7-2f1f20a7cc3c",
+      "name": "On form submission",
+      "webhookId": "bb8e01ce-4a7d-4a54-b8ff-5687fbc85b10"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an assistant responsible for generating professional email responses.\n\nAnalyze the following task submission data and generate a formal reply email:\n- Name: {{$json[\"Name\"]}}\n- Email ID: {{$json[\"Email id\"]}}\n- Task Status: {{$json[\"Status\"]}}\n- Submission Time: {{$json[\"submittedAt\"]}}\n\nCompose a professional and appreciative email confirming receipt of the update and acknowledging the task status. Keep it polite, concise, and workplace-appropriate. \n\nOutput Format:\nSubject: [Subject line]\nBody: [Formatted email body]\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        -80
+      ],
+      "id": "0b5f4f0e-8c10-44ff-a73f-2bd465fb1cb6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        200
+      ],
+      "id": "7f7ed9bc-d369-45aa-8b4c-7ff5f5f9f500",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "xDeXoSOidXKoqHMp",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sindhujakamaraj27@gmail.com",
+        "subject": "Report datas",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        340,
+        -80
+      ],
+      "id": "f5581a1c-b23e-4934-be37-6dc0b3a2db60",
+      "name": "Gmail",
+      "webhookId": "73c040c2-4d97-454d-be30-ddb3dca954b1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zXKSTJWr9tOhrnZ6",
+          "name": "Gmail account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f49b0f7e-a96b-46f9-933b-6466a6346982",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8df27c27ebdd005e11db45d64edf3c4da9abc1a5843be3b299af1b886f484d22"
+  },
+  "id": "Rr993Mun9kMfBrK3",
+  "tags": []
+}
