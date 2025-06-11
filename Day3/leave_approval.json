@@ -1,0 +1,196 @@
+{
+  "name": "leave approval",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "hour": 12,
+              "minute": 1
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "id": "2ce63368-00dd-4432-ab57-66512a6870db",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        100
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zXKSTJWr9tOhrnZ6",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "13GURlqIb0e6EIJU93joAF1msJE_X9BWLSHYpQV7RGgE",
+        "range": "Sheet1!A:D",
+        "options": {}
+      },
+      "id": "7aea3597-a89c-4e24-996e-06aa3f9deb93",
+      "name": "Google Sheets: Read Balances",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wUU7UcKrkxEKvYGs",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "subject": "Leave Request Approved",
+        "message": "=The Approval request {{ $json.output }}",
+        "toList": [
+          "sindhujakamaraj27@gmail.com"
+        ],
+        "additionalFields": {}
+      },
+      "id": "44103e59-a304-4214-9452-3e7949584e0e",
+      "name": "Gmail Send: Approve",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        260,
+        20
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zXKSTJWr9tOhrnZ6",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an intelligent HR assistant. The following markdown table contains leave balance details for employees. Check if an employee is eligible for leave based on their available balance. If the balance is enough, approve the leave, otherwise reject it.\n\nOutput a summary for each request in this format:\n\n- **Employee**: [Name]  \n- **Email**: [Email]   \n- **Requested Days**: [Requested Days]  \n- **Available Balance**: [Balance]  \n- **Status**: Approved / Rejected  \n- **Reason**: (If rejected, state the reason)\n\nMarkdown Table:  \n{{ $json.markdownTable }}\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        0
+      ],
+      "id": "26ea20d5-c95e-481b-b46c-07a11fae3da6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        220
+      ],
+      "id": "1ddd2582-ad53-4203-a0a2-6acb4c5a1311",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "KyT5SG6a6DRmp73p",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(item => item.json);\n\n// Get headers from the first row\nconst headers = Object.keys(rows[0]);\n\n// Build the markdown table\nlet markdown = '| ' + headers.join(' | ') + ' |\\n';\nmarkdown += '| ' + headers.map(() => '---').join(' | ') + ' |\\n';\n\nrows.forEach(row => {\n  const values = headers.map(h => row[h]);\n  markdown += '| ' + values.join(' | ') + ' |\\n';\n});\n\nreturn [\n  {\n    json: {\n      markdownTable: markdown\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        120
+      ],
+      "id": "0fc3ce13-1ef0-4d36-a5e9-fdf98885f01b",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets: Read Balances": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Read Balances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send: Approve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ab040b18-3524-455f-8480-14261955b607",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8df27c27ebdd005e11db45d64edf3c4da9abc1a5843be3b299af1b886f484d22"
+  },
+  "id": "EMWLdPGR8M2BFeEN",
+  "tags": []
+}
